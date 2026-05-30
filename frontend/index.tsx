@@ -34,7 +34,7 @@ function runOnDoc(unsafeWindow, doc) {
 			document.cookie = 'birthtime=' + twentyFiveYearsAgo + cookieOptions;
 
 			// Reload after making sure we're actually on a page with an age gate
-			window.addEventListener('DOMContentLoaded', () => {
+			doc.addEventListener('DOMContentLoaded', () => {
 				if (document.getElementById('app_agegate')) {
 					location.reload();
 				}
@@ -145,7 +145,7 @@ function runOnDoc(unsafeWindow, doc) {
 				loadedscripts[name] = obj;
 			}
 		}
-		Object.assign(unsafeWindow, {
+		Object.assign(doc, {
 			loadlib,
 		});
 	})();
@@ -1115,8 +1115,8 @@ function runOnDoc(unsafeWindow, doc) {
 		);
 
 		a.watchvar = newfunc(
-			function watchvar(varname, onset, onget, obj = window) {
-				obj = obj || window;
+			function watchvar(varname, onset, onget, obj = doc) {
+				obj = obj || doc;
 				obj[`_${varname}`] = undefined;
 				obj[`${varname}`] = undefined;
 				Object.defineProperty(obj, varname, {
@@ -1135,7 +1135,7 @@ function runOnDoc(unsafeWindow, doc) {
 				});
 			},
 			function ({ ifunset, end, args: [varname, onset, onget, obj], maketype }) {
-				ifunset([undefined, () => {}, () => {}, window]); // Default values
+				ifunset([undefined, () => {}, () => {}, doc]); // Default values
 				varname = maketype(varname, ['string']); // Ensure varname is a string
 				onset = maketype(onset, ['function']); // Ensure onset is a function
 				onget = maketype(onget, ['function', 'undefined']); // Ensure onget is a function or undefined
@@ -1164,20 +1164,20 @@ function runOnDoc(unsafeWindow, doc) {
 
 		a.constrainvar = newfunc(
 			function constrainvar(varname, min, max) {
-				window[`_${varname}`] = undefined;
-				window[`${varname}`] = undefined;
-				Object.defineProperty(window, varname, {
+				doc[`_${varname}`] = undefined;
+				doc[`${varname}`] = undefined;
+				Object.defineProperty(doc, varname, {
 					configurable: false,
 					get() {
-						return window[`_${varname}`];
+						return doc[`_${varname}`];
 					},
 					set(value) {
-						if (value === window[`_${varname}`]) {
+						if (value === doc[`_${varname}`]) {
 							return;
 						}
 						if (value > max) value = max;
 						if (value < min) value = min;
-						window[`_${varname}`] = value;
+						doc[`_${varname}`] = value;
 					},
 				});
 			},
@@ -1446,10 +1446,10 @@ function runOnDoc(unsafeWindow, doc) {
 		a.getfiles = newfunc(
 			async function getfiles(oldway, multiple, accept = [], options = {}) {
 				const supportsFileSystemAccess =
-					'showOpenFilePicker' in window &&
+					'showOpenFilePicker' in doc &&
 					(() => {
 						try {
-							return window.self === window.top;
+							return doc.self === doc.top;
 						} catch {
 							return false;
 						}
@@ -1514,10 +1514,10 @@ function runOnDoc(unsafeWindow, doc) {
 		a.getfolder = newfunc(
 			async function getfolder(write = false, options = {}) {
 				const supportsFileSystemAccess =
-					'showDirectoryPicker' in window &&
+					'showDirectoryPicker' in doc &&
 					(() => {
 						try {
-							return window.self === window.top;
+							return doc.self === doc.top;
 						} catch {
 							return false;
 						}
@@ -1797,7 +1797,7 @@ function runOnDoc(unsafeWindow, doc) {
 			async function waitforclick(fileHandle, readWrite) {
 				return new Promise((resolve) => {
 					var listener = a.listen(
-						window,
+						doc,
 						'click',
 						() => {
 							a.unlisten(listener);
@@ -1907,7 +1907,7 @@ function runOnDoc(unsafeWindow, doc) {
 							e(x);
 						},
 					};
-					if (!window.IDBStore) {
+					if (!doc.IDBStore) {
 						(function (p, h, k) {
 							'function' === typeof define ? define(h) : 'undefined' !== typeof module && module.exports ? (module.exports = h()) : (k[p] = h());
 						})(
@@ -1940,7 +1940,7 @@ function runOnDoc(unsafeWindow, doc) {
 										this.dbName = this.storePrefix + this.storeName;
 										this.dbVersion = parseInt(this.dbVersion, 10) || 1;
 										b && (this.onStoreReady = b);
-										var d = 'object' == typeof window ? window : self;
+										var d = 'object' == typeof doc ? doc : self;
 										this.implementation = this.implementationPreference.filter(function (a) {
 											return a in d;
 										})[0];
@@ -2484,7 +2484,7 @@ function runOnDoc(unsafeWindow, doc) {
 								q.version = t.version;
 								return q;
 							},
-							unsafeWindow,
+							doc,
 						);
 					}
 					x = new IDBStore(obj);
@@ -2773,7 +2773,7 @@ function runOnDoc(unsafeWindow, doc) {
 				return end();
 			},
 		);
-		unsafeWindow.loadlib('libloader').savelib('allfuncs', a);
+		doc.loadlib('libloader').savelib('allfuncs', a);
 	})();
 	// ==UserScript==
 	// @name        lib:textjack
@@ -2791,8 +2791,8 @@ function runOnDoc(unsafeWindow, doc) {
 	// @updateURL https://update.greasyfork.org/scripts/529027/lib%3Atextjack.meta.js
 	// ==/UserScript==
 
-	Object.assign(window, console);
-	const a = unsafeWindow.loadlib('allfuncs');
+	Object.assign(doc, console);
+	const a = doc.loadlib('allfuncs');
 	var textJackList = [];
 
 	const observedShadowRoots = new WeakSet();
@@ -2922,7 +2922,7 @@ function runOnDoc(unsafeWindow, doc) {
 		runInitialization();
 	}
 
-	unsafeWindow.loadlib('libloader').savelib('textjack', function newTextJack(cb) {
+	doc.loadlib('libloader').savelib('textjack', function newTextJack(cb) {
 		textJackList.push(cb);
 		if (document.body) {
 			runInitialization();
@@ -2943,50 +2943,61 @@ function runOnDoc(unsafeWindow, doc) {
 	// @author      rssaromeo
 	// @match       https://store.steampowered.com/*
 	// @exclude     *://challenges.cloudflare.com/*
-	// @grant       unsafeWindow
+	// @grant       doc
 	// @license     AGPLv3
 	// @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAHJQTFRFAAAAEIijAo2yAI60BYyuF4WaFIifAY6zBI2wB4usGIaZEYigIoiZCIyrE4igG4iYD4mjEomhFoedCoqpDIqnDomlBYyvE4efEYmiDYqlA42xBoytD4mkCYqqGYSUFYidC4qoC4upAo6yCoupDYqmCYur4zowOQAAACZ0Uk5TAO////9vr////1+/D/+/L+/Pf/////+f3///////H4////////+5G91rAAACgUlEQVR4nM2Y22KjIBCGidg1264liZqDadK03X3/V2wNKHMC7MpF/xthHD5mgERAqZhWhfYqH6K+Qf2qNNf625hCoFj9/gblMUi5q5jLkXLCKudgyiRm0FMK82cWJp1fLbV5VmvJbCIc0GCYaFqqlDJgADdBjncqAXYobm1xh72aFMflbysteFfdy2Yi1XGOm5HGBzQ1dq7TzEoxjeNTjQZb7VA3e1c7+ImgasAgQ9+xusNVNZIo5xmOMgihIS2PbCQIiHEUdTvhxCcS/kPomfFI2zHy2PkWmA6aNatIJpKFJyekyy02xh5Y3DI9T4aOT6VhIUrsNTFp1pf79Z4SIIVDegl6IJO6cHiL/GimIZDhgTu/BlYWCQzHMl0zBWT/T3KAhtxOuUB9FtBrpsz0RV4xsjHmW+UCaffcSy/5viMGer0/6HdFNMZBq/vjJL38H9Dqx4Fuy0Em12DbZy+9pGtiDijbglwAehyj11n0tRD3WUBm+lwulE/8h4BuA+iWAQQnteg2Xm63WQLTpnMnpjdge0Mgu/GRPsV4xdjQ94Lfi624fabhDkfUqIKNrM64Q837v8yL0prasepCgrtvw1sJpoqanGEX7b5mQboNW8eawXaWXTMfMGxub472hzWzHSn6Sg2G9+6TAyRruE71s+zAzjWaknoyJCQzwxrghH2k5FDT4eqWunuNxyN9QCGcxVod5oADbYnIUkDTGZEf1xDJnSFteQ3KdsT8zYDMQXcHxsevcLH1TrsABzkNPyA/L7b0jg704viMMlpQI96WsHknCt/3YH0kOEo9zcGkwrFK39ck72rmoehmKqo2RKlilzSy/nJKEV45CT38myJp456fezktHjN5aeMAAAAASUVORK5CYII=
 	// @description 5/23/2026, 1:15:33 PM
 	// ==/UserScript==
 	(async () => {
-		await a.waitforelem('.DRM_notice');
-		var all = [...document.querySelectorAll('.DRM_notice')].filter((e) => e.querySelector('div')?.textContent !== 'Requires agreement to a 3rd-party EULA');
-		if (all.length) {
-			a.waitforelem(
-				'#ignoreBtn > div.queue_control_button.queue_btn_ignore > button.btnv6_blue_hoverfade.btn_medium.queue_btn_inactive:not([style="display: none;"])',
-			).then((e) => {
-				var i = setInterval(() => {
-					var s;
-					if (
-						(s = document.querySelector(
-							'#ignoreBtn > div.queue_control_button.queue_btn_ignore > button.btnv6_blue_hoverfade.btn_medium.queue_btn_inactive:not([style="display: none;"])',
-						))
-					) {
-						s.click();
-					} else {
-						clearInterval(i);
-						if (document.querySelector('#nextInDiscoveryQueue>*')) {
-							document.querySelector('#nextInDiscoveryQueue>*').click();
-						}
+		var ii = setInterval(() => {
+			var e = a.qs('.DRM_notice');
+			if (!e) {
+				return;
+			}
+			clearInterval(ii);
+			var all = [...document.querySelectorAll('.DRM_notice')].filter((e) => e.querySelector('div')?.textContent !== 'Requires agreement to a 3rd-party EULA');
+			if (all.length) {
+				var ii = setInterval(() => {
+					var e = a.qs(
+						'#ignoreBtn > div.queue_control_button.queue_btn_ignore > button.btnv6_blue_hoverfade.btn_medium.queue_btn_inactive:not([style="display: none;"])',
+					);
+					if (!e) {
+						return;
 					}
-				}, 100);
-			});
-			setInterval(() => {
-				document.querySelector('#appHubAppName').textContent = 'HAS DRM!!';
-				unsafeWindow.AddToWishlist = () => {
-					alert('HAS DRM!!');
-				};
-				if (document.querySelector('#game_area_purchase')) {
-					document.querySelector('#game_area_purchase').remove();
-				}
-				if ([...document.querySelectorAll('#add_to_wishlist_area a')].length == 2) {
-					document.querySelector('#add_to_wishlist_area a:first-of-type').remove();
-				}
-				document.querySelector('a[href^="javascript:AddToWishlist"]')?.remove?.();
+					clearInterval(ii);
+					var i = setInterval(() => {
+						var s;
+						if (
+							(s = document.querySelector(
+								'#ignoreBtn > div.queue_control_button.queue_btn_ignore > button.btnv6_blue_hoverfade.btn_medium.queue_btn_inactive:not([style="display: none;"])',
+							))
+						) {
+							s.click();
+						} else {
+							clearInterval(i);
+							if (document.querySelector('#nextInDiscoveryQueue>*')) {
+								document.querySelector('#nextInDiscoveryQueue>*').click();
+							}
+						}
+					}, 100);
+					setInterval(() => {
+						document.querySelector('#appHubAppName').textContent = 'HAS DRM!!';
+						unsafeWindow.AddToWishlist = () => {
+							alert('HAS DRM!!');
+						};
+						if (document.querySelector('#game_area_purchase')) {
+							document.querySelector('#game_area_purchase').remove();
+						}
+						if ([...document.querySelectorAll('#add_to_wishlist_area a')].length == 2) {
+							document.querySelector('#add_to_wishlist_area a:first-of-type').remove();
+						}
+						document.querySelector('a[href^="javascript:AddToWishlist"]')?.remove?.();
 
-				if ([...document.querySelectorAll('#queueBtnFollow button')].length == 2) document.querySelector('#queueBtnFollow button:first-of-type').remove();
-			}, 100);
-		}
+						if ([...document.querySelectorAll('#queueBtnFollow button')].length == 2) document.querySelector('#queueBtnFollow button:first-of-type').remove();
+					}, 100);
+				});
+			}
+		});
 	})();
 	// ==UserScript==
 	// @name        steam, don't ever reload!
@@ -2995,15 +3006,15 @@ function runOnDoc(unsafeWindow, doc) {
 	// @author      rssaromeo
 	// @match       https://store.steampowered.com/*
 	// @exclude     *://challenges.cloudflare.com/*
-	// @grant       unsafeWindow
+	// @grant       doc
 	// @license     AGPLv3
 	// @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAAXNSR0IB2cksfwAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAHJQTFRFAAAAEIijAo2yAI60BYyuF4WaFIifAY6zBI2wB4usGIaZEYigIoiZCIyrE4igG4iYD4mjEomhFoedCoqpDIqnDomlBYyvE4efEYmiDYqlA42xBoytD4mkCYqqGYSUFYidC4qoC4upAo6yCoupDYqmCYur4zowOQAAACZ0Uk5TAO////9vr////1+/D/+/L+/Pf/////+f3///////H4////////+5G91rAAACgUlEQVR4nM2Y22KjIBCGidg1264liZqDadK03X3/V2wNKHMC7MpF/xthHD5mgERAqZhWhfYqH6K+Qf2qNNf625hCoFj9/gblMUi5q5jLkXLCKudgyiRm0FMK82cWJp1fLbV5VmvJbCIc0GCYaFqqlDJgADdBjncqAXYobm1xh72aFMflbysteFfdy2Yi1XGOm5HGBzQ1dq7TzEoxjeNTjQZb7VA3e1c7+ImgasAgQ9+xusNVNZIo5xmOMgihIS2PbCQIiHEUdTvhxCcS/kPomfFI2zHy2PkWmA6aNatIJpKFJyekyy02xh5Y3DI9T4aOT6VhIUrsNTFp1pf79Z4SIIVDegl6IJO6cHiL/GimIZDhgTu/BlYWCQzHMl0zBWT/T3KAhtxOuUB9FtBrpsz0RV4xsjHmW+UCaffcSy/5viMGer0/6HdFNMZBq/vjJL38H9Dqx4Fuy0Em12DbZy+9pGtiDijbglwAehyj11n0tRD3WUBm+lwulE/8h4BuA+iWAQQnteg2Xm63WQLTpnMnpjdge0Mgu/GRPsV4xdjQ94Lfi624fabhDkfUqIKNrM64Q837v8yL0prasepCgrtvw1sJpoqanGEX7b5mQboNW8eawXaWXTMfMGxub472hzWzHSn6Sg2G9+6TAyRruE71s+zAzjWaknoyJCQzwxrghH2k5FDT4eqWunuNxyN9QCGcxVod5oADbYnIUkDTGZEf1xDJnSFteQ3KdsT8zYDMQXcHxsevcLH1TrsABzkNPyA/L7b0jg704viMMlpQI96WsHknCt/3YH0kOEo9zcGkwrFK39ck72rmoehmKqo2RKlilzSy/nJKEV45CT38myJp456fezktHjN5aeMAAAAASUVORK5CYII=
 	// @description 5/26/2026, 8:24:44 PM
 	// ==/UserScript==
 	(async () => {
 		var i = setInterval(() => {
-			if (unsafeWindow.ShowAlertDialog) {
-				var o = unsafeWindow.ShowAlertDialog;
+			if (doc.ShowAlertDialog) {
+				var o = doc.ShowAlertDialog;
 				clearInterval(i);
 				unsafeWindow.location.reload = function () {
 					console.log('Reload prevented!');
@@ -3295,31 +3306,25 @@ webtoon`
 			}
 			return text;
 		}
-		unsafeWindow.loadlib('textjack')(replaceText);
+		doc.loadlib('textjack')(replaceText);
 	})();
-  unsafeWindow.millennium_main = console.log.bind("millennium_main")
-  globalThis.millennium_main = console.log.bind("millennium_main")
-	unsafeWindow.open()
-	window.open()
 }
 
-globalThis.millennium_main = console.log.bind("millennium_main")
-
-function windowCreated(context: any) {
+function docCreated(context: any) {
 	const popup = context?.m_popup;
 	if (!popup) return;
 	const doc = popup.document;
-	console.log('[misc] window created:', context?.m_strTitle, 'doc:', doc?.title);
+	console.log('[misc] doc created:', context?.m_strTitle, 'doc:', doc?.title);
 	if (doc?.readyState === 'loading') {
-		doc.addEventListener('DOMContentLoaded', () => runOnDoc(popup.window, doc));
+		doc.addEventListener('DOMContentLoaded', () => runOnDoc(popup.doc, doc));
 	} else {
 		runOnDoc(popup.window, doc);
 	}
 }
 
 export default definePlugin(() => {
-	console.log('[misc] frontend loaded in SharedJSContext, hooking windows...');
-	Millennium.AddWindowCreateHook(windowCreated);
+	console.log('[misc] frontend loaded in SharedJSContext, hooking docs...');
+	Millennium.AddWindowCreateHook(docCreated);
 
 	return {
 		title: '',
