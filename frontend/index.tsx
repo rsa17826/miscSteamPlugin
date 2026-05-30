@@ -199,7 +199,7 @@ function runOnDoc(unsafeWindow, doc) {
 	 */
 	(() => {
 		function newfunc(func, testfunc) {
-			var funcname = func.name || func.prototype.name;
+			var funcname = 'func.name || func.prototype.name';
 			var retfunc = function () {
 				var i = 0;
 				var inputargs = [...arguments];
@@ -301,7 +301,6 @@ function runOnDoc(unsafeWindow, doc) {
 					}.bind(retfunc),
 				});
 			};
-			retfunc.name = retfunc.prototype.name = 'strict ' + (funcname ?? 'function');
 			retfunc.funcname = funcname;
 			return retfunc.bind(retfunc);
 			/**
@@ -2774,7 +2773,7 @@ function runOnDoc(unsafeWindow, doc) {
 				return end();
 			},
 		);
-		loadlib('libloader').savelib('allfuncs', a);
+		unsafeWindow.loadlib('libloader').savelib('allfuncs', a);
 	})();
 	// ==UserScript==
 	// @name        lib:textjack
@@ -2793,7 +2792,7 @@ function runOnDoc(unsafeWindow, doc) {
 	// ==/UserScript==
 
 	Object.assign(window, console);
-	const a = loadlib('allfuncs');
+	const a = unsafeWindow.loadlib('allfuncs');
 	var textJackList = [];
 
 	const observedShadowRoots = new WeakSet();
@@ -2923,7 +2922,7 @@ function runOnDoc(unsafeWindow, doc) {
 		runInitialization();
 	}
 
-	loadlib('libloader').savelib('textjack', function newTextJack(cb) {
+	unsafeWindow.loadlib('libloader').savelib('textjack', function newTextJack(cb) {
 		textJackList.push(cb);
 		if (document.body) {
 			runInitialization();
@@ -3296,9 +3295,15 @@ webtoon`
 			}
 			return text;
 		}
-		loadlib('textjack')(replaceText);
+		unsafeWindow.loadlib('textjack')(replaceText);
 	})();
+  unsafeWindow.millennium_main = console.log.bind("millennium_main")
+  globalThis.millennium_main = console.log.bind("millennium_main")
+	unsafeWindow.open()
+	window.open()
 }
+
+globalThis.millennium_main = console.log.bind("millennium_main")
 
 function windowCreated(context: any) {
 	const popup = context?.m_popup;
